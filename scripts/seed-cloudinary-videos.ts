@@ -11,9 +11,13 @@ const LOCAL_VIDEO_SOURCES = [
 ]
 
 async function uploadToCloudinary(filePath: string, publicId: string): Promise<string> {
-  const cloudName = process.env.CLOUDINARY_CLOUD_NAME?.trim() || "dyuyvwets"
-  const apiKey = process.env.CLOUDINARY_API_KEY?.trim() || "131931173211181"
-  const apiSecret = process.env.CLOUDINARY_API_SECRET?.trim() || "zeSwec3nTN9VmqIYrTWOhvwbsYc"
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME?.trim()
+  const apiKey = process.env.CLOUDINARY_API_KEY?.trim()
+  const apiSecret = process.env.CLOUDINARY_API_SECRET?.trim()
+
+  if (!cloudName || !apiKey || !apiSecret) {
+    throw new Error("Cloudinary credentials missing from environment (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET)")
+  }
 
   const timestamp = Math.floor(Date.now() / 1000).toString()
   const folder = "kreatrdesk"
@@ -45,7 +49,7 @@ async function uploadToCloudinary(filePath: string, publicId: string): Promise<s
 async function run() {
   await dbConnect()
 
-  console.log("[Cloudinary Seed] Uploading real MP4 videos to your Cloudinary CDN (dyuyvwets)...")
+  console.log("[Cloudinary Seed] Uploading real MP4 videos to Cloudinary CDN...")
   const uploadedUrls: string[] = []
 
   for (let i = 0; i < LOCAL_VIDEO_SOURCES.length; i++) {
