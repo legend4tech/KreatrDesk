@@ -81,7 +81,7 @@ KreatrDesk builds an end-to-end, zero-trust loop connecting verified businesses 
 
 - **Frontend & Fullstack API:** [Next.js 16 (App Router)](https://nextjs.org/) + [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
 - **Styling & UI:** [Tailwind CSS v4](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/) + Lucide Icons (Electric Violet Brand Theme)
-- **Blockchain Escrow:** [Solidity 0.8.24](https://soliditylang.org/) (`UmunnaPot.sol` / `MockUSDC.sol`) deployed on **Base Sepolia (Chain ID: 84532)**
+- **Blockchain Escrow:** [Solidity 0.8.24](https://soliditylang.org/) (`KreatrDeskEscrowVault.sol` / `MockUSDC.sol`) deployed on **Base Sepolia (Chain ID: 84532)**
 - **Web3 Connectivity:** [Wagmi 2](https://wagmi.sh/) + [Viem](https://viem.sh/) + [RainbowKit](https://www.rainbowkit.com/)
 - **Database:** [MongoDB Atlas](https://www.mongodb.com/) via [Mongoose 9](https://mongoosejs.com/)
 - **AI Deliverable Evaluation:** [Gemini Multimodal Models](https://deepmind.google/technologies/gemini/) via OpenRouter
@@ -120,8 +120,8 @@ MONGODB_DB=kreatrdesk
 NEXT_PUBLIC_BASE_SEPOLIA_RPC_URL=https://sepolia.base.org
 NEXT_PUBLIC_CHAIN_ID=84532
 NEXT_PUBLIC_MOCK_USDC_ADDRESS=0xE9557485Ccd568c3984451f04f4ceF6E5b63809a
-NEXT_PUBLIC_UMUNNA_POT_ADDRESS=0xdd3f4312a0f8a22ca0a5e31fb7dad7afc8916aaa
 NEXT_PUBLIC_KREATR_ESCROW_ADDRESS=0xdd3f4312a0f8a22ca0a5e31fb7dad7afc8916aaa
+NEXT_PUBLIC_UMUNNA_POT_ADDRESS=0xdd3f4312a0f8a22ca0a5e31fb7dad7afc8916aaa
 
 # Fiat & AI (Optional for local demo)
 ROQQU_SECRET_KEY=RASPRIV_...
@@ -163,7 +163,7 @@ pnpm lint
 
 | Contract | Network | Address | Explorer |
 | :--- | :--- | :--- | :--- |
-| **UmunnaPot (Escrow Vault)** | Base Sepolia | `0xdd3f4312a0f8a22ca0a5e31fb7dad7afc8916aaa` | [View on BaseScan](https://sepolia.basescan.org/address/0xdd3f4312a0f8a22ca0a5e31fb7dad7afc8916aaa) |
+| **KreatrDesk Escrow Vault** | Base Sepolia | `0xdd3f4312a0f8a22ca0a5e31fb7dad7afc8916aaa` | [View on BaseScan](https://sepolia.basescan.org/address/0xdd3f4312a0f8a22ca0a5e31fb7dad7afc8916aaa) |
 | **MockUSDC (mUSDC)** | Base Sepolia | `0xE9557485Ccd568c3984451f04f4ceF6E5b63809a` | [View on BaseScan](https://sepolia.basescan.org/address/0xE9557485Ccd568c3984451f04f4ceF6E5b63809a) |
 
 ---
@@ -171,3 +171,4 @@ pnpm lint
 ## ⚖️ License
 
 Distributed under the MIT License. See [LICENSE](LICENSE) for more details.
+
