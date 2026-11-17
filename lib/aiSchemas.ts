@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 /**
- * Standard frequency cadences compatible with the deployed UmunnaPot smart contract.
+ * Standard frequency cadences compatible with the deployed KreatrDesk Escrow Vault smart contract.
  * The contract enforces fixed intervalSeconds (minimum 30 seconds).
  */
 export const SUPPORTED_FREQUENCIES = ["daily", "weekly", "monthly", "custom"] as const

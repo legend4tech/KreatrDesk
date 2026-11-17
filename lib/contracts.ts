@@ -10,16 +10,16 @@ export const MOCK_USDC_ADDRESS = ((
   ZERO_ADDRESS
 ) as `0x${string}`)
 
-export const UMUNNA_POT_ADDRESS = ((
-  process.env.NEXT_PUBLIC_UMUNNA_POT_ADDRESS?.trim() ||
-  process.env.NEXT_PUBLIC_POT_CONTRACT_ADDRESS?.trim() ||
-  process.env.UMUNNA_POT_CONTRACT_ADDRESS?.trim() ||
+export const KREATR_ESCROW_ADDRESS = ((
+  process.env.NEXT_PUBLIC_KREATR_ESCROW_ADDRESS?.trim() ||
+  process.env.NEXT_PUBLIC_ESCROW_ADDRESS?.trim() ||
+  process.env.KREATR_ESCROW_CONTRACT_ADDRESS?.trim() ||
   ZERO_ADDRESS
 ) as `0x${string}`)
 
 export function isContractConfigured(): boolean {
   return (
-    UMUNNA_POT_ADDRESS.toLowerCase() !== ZERO_ADDRESS &&
+    KREATR_ESCROW_ADDRESS.toLowerCase() !== ZERO_ADDRESS &&
     MOCK_USDC_ADDRESS.toLowerCase() !== ZERO_ADDRESS
   )
 }
@@ -134,7 +134,7 @@ export const MOCK_USDC_ABI = [
   },
 ] as const
 
-export const UMUNNA_POT_ABI = [
+export const KREATR_ESCROW_ABI = [
   {
     type: "function",
     name: "MIN_INTERVAL_SECONDS",

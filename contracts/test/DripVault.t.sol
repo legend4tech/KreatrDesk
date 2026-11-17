@@ -3,11 +3,11 @@ pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 import {MockUSDC} from "../src/MockUSDC.sol";
-import {UmunnaPot} from "../src/UmunnaPot.sol";
+import {KreatrDeskEscrowVault} from "../src/KreatrDeskEscrowVault.sol";
 
 contract DripVaultTest is Test {
     MockUSDC internal usdc;
-    UmunnaPot internal pot;
+    KreatrDeskEscrowVault internal pot;
 
     address internal freelancer = makeAddr("freelancer");
     address internal guardian = makeAddr("guardian");
@@ -18,7 +18,7 @@ contract DripVaultTest is Test {
 
     function setUp() public {
         usdc = new MockUSDC();
-        pot = new UmunnaPot(address(usdc));
+        pot = new KreatrDeskEscrowVault(address(usdc));
 
         usdc.mint(freelancer, 1_000 * ONE_USDC);
     }
@@ -44,7 +44,7 @@ contract DripVaultTest is Test {
         vm.warp(block.timestamp + 25);
         vm.expectRevert(
             abi.encodeWithSelector(
-                UmunnaPot.ReleaseNotDue.selector,
+                KreatrDeskEscrowVault.ReleaseNotDue.selector,
                 uint64(block.timestamp),
                 expectedDue
             )
@@ -74,14 +74,14 @@ contract DripVaultTest is Test {
             );
         }
 
-        UmunnaPot.DripVault memory v = pot.getDripVault(vaultId);
+        KreatrDeskEscrowVault.DripVault memory v = pot.getDripVault(vaultId);
         assertFalse(v.active);
         assertEq(v.remainingAmount, 0);
         assertEq(v.releasedCount, 6);
 
         // Subsequent release on completed vault reverts
         vm.warp(block.timestamp + 60);
-        vm.expectRevert(UmunnaPot.VaultInactive.selector);
+        vm.expectRevert(KreatrDeskEscrowVault.VaultInactive.selector);
         pot.releaseDue(vaultId);
     }
 
@@ -94,12 +94,12 @@ contract DripVaultTest is Test {
 
         // Guardian cannot approve before beneficiary requests early exit
         vm.prank(guardian);
-        vm.expectRevert(UmunnaPot.EarlyExitNotRequested.selector);
+        vm.expectRevert(KreatrDeskEscrowVault.EarlyExitNotRequested.selector);
         pot.approveEarlyExit(vaultId);
 
         // Non-beneficiary cannot request early exit
         vm.prank(stranger);
-        vm.expectRevert(UmunnaPot.NotBeneficiary.selector);
+        vm.expectRevert(KreatrDeskEscrowVault.NotBeneficiary.selector);
         pot.requestEarlyExit(vaultId);
 
         // Beneficiary requests emergency exit
@@ -108,7 +108,7 @@ contract DripVaultTest is Test {
 
         // Non-guardian still cannot approve
         vm.prank(freelancer);
-        vm.expectRevert(UmunnaPot.NotGuardian.selector);
+        vm.expectRevert(KreatrDeskEscrowVault.NotGuardian.selector);
         pot.approveEarlyExit(vaultId);
 
         // Guardian approves -> full remaining 250 USDC refunded to freelancer
@@ -118,7 +118,7 @@ contract DripVaultTest is Test {
 
         assertEq(usdc.balanceOf(freelancer), balBefore + 250 * ONE_USDC);
 
-        UmunnaPot.DripVault memory v = pot.getDripVault(vaultId);
+        KreatrDeskEscrowVault.DripVault memory v = pot.getDripVault(vaultId);
         assertFalse(v.active);
         assertEq(v.remainingAmount, 0);
     }

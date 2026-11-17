@@ -1,6 +1,6 @@
 import fs from "node:fs"
 import path from "node:path"
-import { createPublicClient, createWalletClient, formatEther, http } from "viem"
+import { createPublicClient, createWalletClient, formatEther, http, type Abi } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { baseSepolia } from "viem/chains"
 
@@ -38,7 +38,7 @@ async function main() {
 
   const artifactPath = path.join(
     "/home/legend4tech/Documents/kreatrdesk",
-    "contracts/out/UmunnaPot.sol/UmunnaPot.json"
+    "contracts/out/KreatrDeskEscrowVault.sol/KreatrDeskEscrowVault.json"
   )
   const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8")) as {
     abi: unknown[]
@@ -66,7 +66,7 @@ async function main() {
     // Initialize Vault #1 (ZoboCraft Launch Escrow) and Vault #2 (KoboPoint POS Campaign Escrow)
     const createHash1 = await walletClient.writeContract({
       address: receipt.contractAddress,
-      abi: artifact.abi as any,
+      abi: artifact.abi as Abi,
       functionName: "createCommunity",
       args: [
         "KreatrDesk Escrow Vault #1: ZoboCraft Sparkling Can Campaign",
@@ -82,7 +82,7 @@ async function main() {
 
     const createHash2 = await walletClient.writeContract({
       address: receipt.contractAddress,
-      abi: artifact.abi as any,
+      abi: artifact.abi as Abi,
       functionName: "createCommunity",
       args: [
         "KreatrDesk Escrow Vault #2: KoboPoint Micro-POS Explainer",
@@ -100,8 +100,8 @@ async function main() {
     const envPath = path.join("/home/legend4tech/Documents/kreatrdesk", ".env.local")
     let envContent = fs.readFileSync(envPath, "utf8")
     envContent = envContent.replace(
-      /NEXT_PUBLIC_UMUNNA_POT_ADDRESS=.*/,
-      `NEXT_PUBLIC_UMUNNA_POT_ADDRESS=${receipt.contractAddress}`
+      /NEXT_PUBLIC_KREATR_ESCROW_ADDRESS=.*/,
+      `NEXT_PUBLIC_KREATR_ESCROW_ADDRESS=${receipt.contractAddress}`
     )
     if (!envContent.includes("NEXT_PUBLIC_KREATR_ESCROW_ADDRESS=")) {
       envContent += `\nNEXT_PUBLIC_KREATR_ESCROW_ADDRESS=${receipt.contractAddress}\n`

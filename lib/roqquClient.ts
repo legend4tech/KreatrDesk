@@ -264,7 +264,7 @@ export async function getSupportedPaymentNetworks(): Promise<RoqquSupportedNetwo
   return Array.isArray(payload.data) ? payload.data : []
 }
 
-export function generateAlphanumericReference(prefix = "UP"): string {
+export function generateAlphanumericReference(prefix = "KD"): string {
   const cleanPrefix = prefix.replace(/[^a-zA-Z0-9]/g, "").slice(0, 4)
   const randomSuffix = crypto.randomBytes(6).toString("hex").toUpperCase()
   return `${cleanPrefix}${Date.now().toString(36).toUpperCase()}${randomSuffix}`.slice(0, 20)
@@ -273,8 +273,8 @@ export function generateAlphanumericReference(prefix = "UP"): string {
 export async function createPaymentLink(
   input: CreatePaymentLinkInput
 ): Promise<RoqquPaymentLinkResult> {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://umunna-pot.vercel.app"
-  const paymentReference = generateAlphanumericReference(`UP${input.communityId}`)
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://kreatrdesk.vercel.app"
+  const paymentReference = generateAlphanumericReference(`KD${input.communityId}`)
   const [firstName, ...rest] = input.contributorName.trim().split(/\s+/)
   const lastName = rest.join(" ") || "Contributor"
 

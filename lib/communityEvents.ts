@@ -1,7 +1,7 @@
 import { toEventSelector } from "viem"
 
 // Matches `event CommunityCreated(uint256 indexed communityId, string name,
-// address indexed creator, uint8 threshold, uint256 signerCount)` in UmunnaPot.sol
+// address indexed creator, uint8 threshold, uint256 signerCount)` in KreatrDeskEscrowVault.sol
 const COMMUNITY_CREATED_SIGNATURE =
   "CommunityCreated(uint256,string,address,uint8,uint256)"
 

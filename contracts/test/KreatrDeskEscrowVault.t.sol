@@ -3,11 +3,11 @@ pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 import {MockUSDC} from "../src/MockUSDC.sol";
-import {UmunnaPot} from "../src/UmunnaPot.sol";
+import {KreatrDeskEscrowVault} from "../src/KreatrDeskEscrowVault.sol";
 
-contract UmunnaPotTest is Test {
+contract KreatrDeskEscrowVaultTest is Test {
     MockUSDC internal usdc;
-    UmunnaPot internal pot;
+    KreatrDeskEscrowVault internal pot;
 
     address internal signerA = makeAddr("signerA");
     address internal signerB = makeAddr("signerB");
@@ -20,7 +20,7 @@ contract UmunnaPotTest is Test {
 
     function setUp() public {
         usdc = new MockUSDC();
-        pot = new UmunnaPot(address(usdc));
+        pot = new KreatrDeskEscrowVault(address(usdc));
 
         usdc.mint(member, 1_000 * ONE_USDC);
         usdc.mint(relayer, 5_000 * ONE_USDC);
@@ -42,7 +42,7 @@ contract UmunnaPotTest is Test {
         signers[1] = signerA;
         signers[2] = signerB;
 
-        vm.expectRevert(UmunnaPot.DuplicateOrZeroSigner.selector);
+        vm.expectRevert(KreatrDeskEscrowVault.DuplicateOrZeroSigner.selector);
         pot.createCommunity("Duplicate Pot", signers, 2);
     }
 
@@ -65,7 +65,7 @@ contract UmunnaPotTest is Test {
         assertEq(balance, 150 * ONE_USDC);
         assertEq(totalContributed, 150 * ONE_USDC);
 
-        UmunnaPot.ContributionRecord[] memory records = pot.getCommunityContributions(communityId);
+        KreatrDeskEscrowVault.ContributionRecord[] memory records = pot.getCommunityContributions(communityId);
         assertEq(records.length, 2);
         assertEq(records[1].contributorTag, "Uncle Chidi (via Roqqu TRC-20)");
     }
@@ -89,7 +89,7 @@ contract UmunnaPotTest is Test {
         );
 
         // Attempting execution with only 1 approval must revert
-        vm.expectRevert(abi.encodeWithSelector(UmunnaPot.QuorumNotReached.selector, 1, 2));
+        vm.expectRevert(abi.encodeWithSelector(KreatrDeskEscrowVault.QuorumNotReached.selector, 1, 2));
         pot.executePayout(payoutId);
     }
 
@@ -112,7 +112,7 @@ contract UmunnaPotTest is Test {
 
         // Double approval by Signer A reverts
         vm.prank(signerA);
-        vm.expectRevert(UmunnaPot.AlreadyApproved.selector);
+        vm.expectRevert(KreatrDeskEscrowVault.AlreadyApproved.selector);
         pot.approvePayout(payoutId);
 
         // Signer B approves -> quorum 2 of 3 reached
@@ -120,7 +120,7 @@ contract UmunnaPotTest is Test {
         pot.approvePayout(payoutId);
 
         vm.expectEmit(true, true, true, true);
-        emit UmunnaPot.PayoutExecuted(
+        emit KreatrDeskEscrowVault.PayoutExecuted(
             payoutId,
             communityId,
             hospitalRecipient,
@@ -134,7 +134,7 @@ contract UmunnaPotTest is Test {
         assertEq(remainingBalance, 60 * ONE_USDC);
 
         // Re-execution reverts
-        vm.expectRevert(UmunnaPot.AlreadyExecuted.selector);
+        vm.expectRevert(KreatrDeskEscrowVault.AlreadyExecuted.selector);
         pot.executePayout(payoutId);
     }
 }

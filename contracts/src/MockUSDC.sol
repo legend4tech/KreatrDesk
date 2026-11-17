@@ -5,7 +5,7 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /**
  * @title MockUSDC
- * @notice 6-decimal testnet ERC-20 token on Base Sepolia for Umunna Pot demos
+ * @notice 6-decimal testnet ERC-20 token on Base Sepolia for KreatrDesk demos
  *         and Roqqu RAS webhook-to-chain Treasury Relayer settlements.
  */
 contract MockUSDC is ERC20 {

@@ -51,9 +51,9 @@ export const envSchema = z.object({
     .string()
     .regex(evmAddressRegex, "NEXT_PUBLIC_MOCK_USDC_ADDRESS must be a valid 0x EVM address")
     .default("0x0000000000000000000000000000000000000000"),
-  NEXT_PUBLIC_UMUNNA_POT_ADDRESS: z
+  NEXT_PUBLIC_KREATR_ESCROW_ADDRESS: z
     .string()
-    .regex(evmAddressRegex, "NEXT_PUBLIC_UMUNNA_POT_ADDRESS must be a valid 0x EVM address")
+    .regex(evmAddressRegex, "NEXT_PUBLIC_KREATR_ESCROW_ADDRESS must be a valid 0x EVM address")
     .default("0x0000000000000000000000000000000000000000"),
 
   // Roqqu API Services (RAS) — Server-Only Credentials
@@ -69,7 +69,7 @@ export const envSchema = z.object({
 
   // Database Configuration (Optional / Detached Demo Mode Supported)
   MONGODB_URI: z.string().optional(),
-  MONGODB_DB: z.string().default("umunna_pot"),
+  MONGODB_DB: z.string().default("kreatrdesk"),
 
   // Server-only Relayer & Signer Private Keys (Optional for current stage)
   RELAYER_PRIVATE_KEY: z
@@ -121,7 +121,9 @@ export function validateEnvironment(): EnvValidationReport {
     NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID:
       process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
     NEXT_PUBLIC_MOCK_USDC_ADDRESS: process.env.NEXT_PUBLIC_MOCK_USDC_ADDRESS,
-    NEXT_PUBLIC_UMUNNA_POT_ADDRESS: process.env.NEXT_PUBLIC_UMUNNA_POT_ADDRESS,
+    NEXT_PUBLIC_KREATR_ESCROW_ADDRESS:
+      process.env.NEXT_PUBLIC_KREATR_ESCROW_ADDRESS ||
+      process.env.NEXT_PUBLIC_ESCROW_ADDRESS,
     ROQQU_BASE_URL: process.env.ROQQU_BASE_URL,
     ROQQU_MODE: process.env.ROQQU_MODE,
     ROQQU_SECRET_KEY: process.env.ROQQU_SECRET_KEY,
@@ -158,10 +160,10 @@ export function validateEnvironment(): EnvValidationReport {
   // Contract deployment warnings if placeholder zero address
   const zeroAddress = "0x0000000000000000000000000000000000000000"
   if (
-    !rawEnv.NEXT_PUBLIC_UMUNNA_POT_ADDRESS ||
-    rawEnv.NEXT_PUBLIC_UMUNNA_POT_ADDRESS.toLowerCase() === zeroAddress
+    !rawEnv.NEXT_PUBLIC_KREATR_ESCROW_ADDRESS ||
+    rawEnv.NEXT_PUBLIC_KREATR_ESCROW_ADDRESS.toLowerCase() === zeroAddress
   ) {
-    warnings["NEXT_PUBLIC_UMUNNA_POT_ADDRESS"] =
+    warnings["NEXT_PUBLIC_KREATR_ESCROW_ADDRESS"] =
       "Configured as zero address placeholder (contract not yet deployed or linked)."
   }
   if (
@@ -226,7 +228,9 @@ export function getServerEnv(): ServerEnv {
     NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID:
       process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
     NEXT_PUBLIC_MOCK_USDC_ADDRESS: process.env.NEXT_PUBLIC_MOCK_USDC_ADDRESS,
-    NEXT_PUBLIC_UMUNNA_POT_ADDRESS: process.env.NEXT_PUBLIC_UMUNNA_POT_ADDRESS,
+    NEXT_PUBLIC_KREATR_ESCROW_ADDRESS:
+      process.env.NEXT_PUBLIC_KREATR_ESCROW_ADDRESS ||
+      process.env.NEXT_PUBLIC_ESCROW_ADDRESS,
     ROQQU_BASE_URL: process.env.ROQQU_BASE_URL,
     ROQQU_MODE: process.env.ROQQU_MODE,
     ROQQU_SECRET_KEY: process.env.ROQQU_SECRET_KEY,

@@ -3,7 +3,7 @@ import { baseSepolia } from "viem/chains"
 import {
   BASE_SEPOLIA_CHAIN_ID,
   MOCK_USDC_ADDRESS,
-  UMUNNA_POT_ADDRESS,
+  KREATR_ESCROW_ADDRESS,
   ZERO_ADDRESS,
 } from "./contracts"
 
@@ -32,7 +32,7 @@ export interface BlockchainVerificationResult {
   blockNumber?: bigint
   latencyMs?: number
   contracts: {
-    umunnaPot: ContractBytecodeCheck
+    escrowVault: ContractBytecodeCheck
     mockUsdc: ContractBytecodeCheck
   }
   error?: string
@@ -154,20 +154,20 @@ export async function verifyBlockchainConnectivity(): Promise<BlockchainVerifica
     const latencyMs = Date.now() - startTime
     const chainIdMatches = actualChainId === BASE_SEPOLIA_CHAIN_ID
 
-    const [umunnaPotCheck, mockUsdcCheck] = await Promise.all([
-      checkContractAddress(client, "UmunnaPot Core Contract", UMUNNA_POT_ADDRESS),
+    const [escrowVaultCheck, mockUsdcCheck] = await Promise.all([
+      checkContractAddress(client, "KreatrDesk Escrow Vault", KREATR_ESCROW_ADDRESS),
       checkContractAddress(client, "MockUSDC Token Contract", MOCK_USDC_ADDRESS),
     ])
 
     const bothContractsReady =
-      umunnaPotCheck.status === "READY" && mockUsdcCheck.status === "READY"
+      escrowVaultCheck.status === "READY" && mockUsdcCheck.status === "READY"
 
     let overallStatus: BlockchainVerificationResult["status"] = "READY"
     if (!chainIdMatches) {
       overallStatus = "BLOCKED"
     } else if (!bothContractsReady) {
       if (
-        umunnaPotCheck.status === "MISSING CONFIGURATION" ||
+        escrowVaultCheck.status === "MISSING CONFIGURATION" ||
         mockUsdcCheck.status === "MISSING CONFIGURATION"
       ) {
         overallStatus = "CONFIGURED BUT NOT VERIFIED"
@@ -185,7 +185,7 @@ export async function verifyBlockchainConnectivity(): Promise<BlockchainVerifica
       blockNumber,
       latencyMs,
       contracts: {
-        umunnaPot: umunnaPotCheck,
+        escrowVault: escrowVaultCheck,
         mockUsdc: mockUsdcCheck,
       },
     }
@@ -200,11 +200,11 @@ export async function verifyBlockchainConnectivity(): Promise<BlockchainVerifica
       chainIdMatches: false,
       latencyMs,
       contracts: {
-        umunnaPot: {
-          label: "UmunnaPot Core Contract",
-          address: UMUNNA_POT_ADDRESS,
-          isZeroAddress: UMUNNA_POT_ADDRESS.toLowerCase() === ZERO_ADDRESS.toLowerCase(),
-          isValidAddress: isAddress(UMUNNA_POT_ADDRESS),
+        escrowVault: {
+          label: "KreatrDesk Escrow Vault",
+          address: KREATR_ESCROW_ADDRESS,
+          isZeroAddress: KREATR_ESCROW_ADDRESS.toLowerCase() === ZERO_ADDRESS.toLowerCase(),
+          isValidAddress: isAddress(KREATR_ESCROW_ADDRESS),
           hasBytecode: false,
           bytecodeLengthBytes: 0,
           status: "BLOCKED",

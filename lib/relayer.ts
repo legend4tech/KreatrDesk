@@ -15,8 +15,8 @@ if (typeof window !== "undefined") {
 import {
   MOCK_USDC_ABI,
   MOCK_USDC_ADDRESS,
-  UMUNNA_POT_ABI,
-  UMUNNA_POT_ADDRESS,
+  KREATR_ESCROW_ABI,
+  KREATR_ESCROW_ADDRESS,
   isContractConfigured,
 } from "@/lib/contracts"
 import { USDC_DECIMALS } from "@/lib/format"
@@ -30,16 +30,16 @@ interface RelayerMemoryStore {
 }
 
 const globalForRelayer = globalThis as unknown as {
-  __umunnaRelayerStore?: RelayerMemoryStore
+  __kreatrRelayerStore?: RelayerMemoryStore
 }
 
 const relayerStore: RelayerMemoryStore =
-  globalForRelayer.__umunnaRelayerStore ?? {
+  globalForRelayer.__kreatrRelayerStore ?? {
     creditedPaymentRefs: new Map(),
     settledTxHashes: new Set(),
   }
 
-globalForRelayer.__umunnaRelayerStore = relayerStore
+globalForRelayer.__kreatrRelayerStore = relayerStore
 
 function getRpcUrl(): string {
   return (
@@ -111,8 +111,8 @@ export async function creditPotFromRoqqu(params: {
 
       // Ensure the community exists on Base Sepolia. If on-chain count is smaller, auto-provision:
       const totalOnchain = await publicClient.readContract({
-        address: UMUNNA_POT_ADDRESS,
-        abi: UMUNNA_POT_ABI,
+        address: KREATR_ESCROW_ADDRESS,
+        abi: KREATR_ESCROW_ABI,
         functionName: "communityCount",
       })
 
@@ -123,8 +123,8 @@ export async function creditPotFromRoqqu(params: {
           "0x90f79bf6eb2c4f870365e785982e1f101e93b906" as `0x${string}`,
         ]
         const createHash = await client.writeContract({
-          address: UMUNNA_POT_ADDRESS,
-          abi: UMUNNA_POT_ABI,
+          address: KREATR_ESCROW_ADDRESS,
+          abi: KREATR_ESCROW_ABI,
           functionName: "createCommunity",
           args: [
             targetPotId === BigInt(1)
@@ -158,7 +158,7 @@ export async function creditPotFromRoqqu(params: {
         address: MOCK_USDC_ADDRESS,
         abi: MOCK_USDC_ABI,
         functionName: "allowance",
-        args: [account.address, UMUNNA_POT_ADDRESS],
+        args: [account.address, KREATR_ESCROW_ADDRESS],
       })
 
       if (allowance < rawUsdcAmount) {
@@ -166,14 +166,14 @@ export async function creditPotFromRoqqu(params: {
           address: MOCK_USDC_ADDRESS,
           abi: MOCK_USDC_ABI,
           functionName: "approve",
-          args: [UMUNNA_POT_ADDRESS, rawUsdcAmount * BigInt(100)],
+          args: [KREATR_ESCROW_ADDRESS, rawUsdcAmount * BigInt(100)],
         })
         await publicClient.waitForTransactionReceipt({ hash: approveHash })
       }
 
       const txHash = await client.writeContract({
-        address: UMUNNA_POT_ADDRESS,
-        abi: UMUNNA_POT_ABI,
+        address: KREATR_ESCROW_ADDRESS,
+        abi: KREATR_ESCROW_ABI,
         functionName: "contribute",
         args: [targetPotId, rawUsdcAmount, params.contributorTag],
       })

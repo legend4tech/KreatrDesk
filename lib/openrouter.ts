@@ -1,5 +1,5 @@
 /**
- * Server-only OpenRouter AI Client for Umunna Pot.
+ * Server-only OpenRouter AI Client for KreatrDesk.
  * Phase 3 AI Engine Integration.
  * 
  * Never import or execute this module in client components.
@@ -56,13 +56,13 @@ function buildOpenRouterHeaders(apiKey: string): Record<string, string> {
   const appUrl =
     process.env.NEXT_PUBLIC_APP_URL ||
     process.env.APPLICATION_URL ||
-    "https://umunna-pot.vercel.app"
+    "https://kreatrdesk.vercel.app"
 
   return {
     Authorization: `Bearer ${apiKey}`,
     "Content-Type": "application/json",
     "HTTP-Referer": appUrl,
-    "X-Title": "Umunna Pot - AI Drip Vault Engine",
+    "X-Title": "KreatrDesk - AI Content Engine",
   }
 }
 

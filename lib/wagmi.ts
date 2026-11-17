@@ -35,7 +35,7 @@ const connectors = connectorsForWallets(
     },
   ],
   {
-    appName: "Umunna Pot",
+    appName: "KreatrDesk",
     projectId: walletConnectProjectId,
   }
 )

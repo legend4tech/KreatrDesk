@@ -6,11 +6,11 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
- * @title UmunnaPot
+ * @title KreatrDeskEscrowVault
  * @notice Programmable group treasury (multi-sig quorum) and self-discipline salary
  *         drip vault paired with Roqqu API Services (RAS) inflow/off-ramp rails.
  */
-contract UmunnaPot is ReentrancyGuard {
+contract KreatrDeskEscrowVault is ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     // ─── Errors ───────────────────────────────────────────────────────────────

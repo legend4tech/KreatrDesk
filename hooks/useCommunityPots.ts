@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useAccount, usePublicClient, useReadContract, useReadContracts, useWriteContract } from "wagmi"
 import {
-  MOCK_USDC_ABI, MOCK_USDC_ADDRESS, UMUNNA_POT_ABI, UMUNNA_POT_ADDRESS, isContractConfigured,
+  MOCK_USDC_ABI, MOCK_USDC_ADDRESS, KREATR_ESCROW_ABI, KREATR_ESCROW_ADDRESS, isContractConfigured,
 } from "@/lib/contracts"
 import {
   approveDemoPayout, claimDemoUsdcFaucet, createDemoCommunity, executeDemoPayout,
@@ -37,15 +37,15 @@ export function useCommunityPots() {
   })
 
   const communityCountRead = useReadContract({
-    address: UMUNNA_POT_ADDRESS,
-    abi: UMUNNA_POT_ABI,
+    address: KREATR_ESCROW_ADDRESS,
+    abi: KREATR_ESCROW_ABI,
     functionName: "communityCount",
     query: { enabled: liveContract },
   })
 
   const payoutCountRead = useReadContract({
-    address: UMUNNA_POT_ADDRESS,
-    abi: UMUNNA_POT_ABI,
+    address: KREATR_ESCROW_ADDRESS,
+    abi: KREATR_ESCROW_ABI,
     functionName: "payoutCount",
     query: { enabled: liveContract },
   })
@@ -56,8 +56,8 @@ export function useCommunityPots() {
   const communityCalls = React.useMemo(
     () =>
       Array.from({ length: totalCommunities }, (_, i) => ({
-        address: UMUNNA_POT_ADDRESS,
-        abi: UMUNNA_POT_ABI,
+        address: KREATR_ESCROW_ADDRESS,
+        abi: KREATR_ESCROW_ABI,
         functionName: "getCommunity" as const,
         args: [BigInt(i + 1)] as const,
       })),
@@ -67,8 +67,8 @@ export function useCommunityPots() {
   const payoutCalls = React.useMemo(
     () =>
       Array.from({ length: totalPayouts }, (_, i) => ({
-        address: UMUNNA_POT_ADDRESS,
-        abi: UMUNNA_POT_ABI,
+        address: KREATR_ESCROW_ADDRESS,
+        abi: KREATR_ESCROW_ABI,
         functionName: "getPayout" as const,
         args: [BigInt(i + 1)] as const,
       })),
@@ -205,8 +205,8 @@ export function useCommunityPots() {
         return { txHash: null }
       }
       const hash = await writeContractAsync({
-        address: UMUNNA_POT_ADDRESS,
-        abi: UMUNNA_POT_ABI,
+        address: KREATR_ESCROW_ADDRESS,
+        abi: KREATR_ESCROW_ABI,
         functionName: "createCommunity",
         args: [params.name, params.signers, params.threshold],
       })
@@ -215,11 +215,11 @@ export function useCommunityPots() {
         const receipt = await publicClient.waitForTransactionReceipt({ hash })
         onChainPotId = await resolveNewCommunityId({
           logs: receipt.logs,
-          contractAddress: UMUNNA_POT_ADDRESS,
+          contractAddress: KREATR_ESCROW_ADDRESS,
           readCommunityCount: () =>
             publicClient.readContract({
-              address: UMUNNA_POT_ADDRESS,
-              abi: UMUNNA_POT_ABI,
+              address: KREATR_ESCROW_ADDRESS,
+              abi: KREATR_ESCROW_ABI,
               functionName: "communityCount",
             }),
         })
@@ -256,7 +256,7 @@ export function useCommunityPots() {
         address: MOCK_USDC_ADDRESS,
         abi: MOCK_USDC_ABI,
         functionName: "allowance",
-        args: [address, UMUNNA_POT_ADDRESS],
+        args: [address, KREATR_ESCROW_ADDRESS],
       })
 
       if (currentAllowance < rawAmount) {
@@ -264,14 +264,14 @@ export function useCommunityPots() {
           address: MOCK_USDC_ADDRESS,
           abi: MOCK_USDC_ABI,
           functionName: "approve",
-          args: [UMUNNA_POT_ADDRESS, rawAmount],
+          args: [KREATR_ESCROW_ADDRESS, rawAmount],
         })
         await publicClient.waitForTransactionReceipt({ hash: approveHash })
       }
 
       const contributeHash = await writeContractAsync({
-        address: UMUNNA_POT_ADDRESS,
-        abi: UMUNNA_POT_ABI,
+        address: KREATR_ESCROW_ADDRESS,
+        abi: KREATR_ESCROW_ABI,
         functionName: "contribute",
         args: [BigInt(params.communityId), rawAmount, params.contributorTag],
       })
@@ -324,8 +324,8 @@ export function useCommunityPots() {
         return null
       }
       const hash = await writeContractAsync({
-        address: UMUNNA_POT_ADDRESS,
-        abi: UMUNNA_POT_ABI,
+        address: KREATR_ESCROW_ADDRESS,
+        abi: KREATR_ESCROW_ABI,
         functionName: "proposePayout",
         args: [
           BigInt(params.communityId),
@@ -351,8 +351,8 @@ export function useCommunityPots() {
         return null
       }
       const hash = await writeContractAsync({
-        address: UMUNNA_POT_ADDRESS,
-        abi: UMUNNA_POT_ABI,
+        address: KREATR_ESCROW_ADDRESS,
+        abi: KREATR_ESCROW_ABI,
         functionName: "approvePayout",
         args: [BigInt(payoutId)],
       })
@@ -371,8 +371,8 @@ export function useCommunityPots() {
         return executeDemoPayout(payoutId)
       }
       const hash = await writeContractAsync({
-        address: UMUNNA_POT_ADDRESS,
-        abi: UMUNNA_POT_ABI,
+        address: KREATR_ESCROW_ADDRESS,
+        abi: KREATR_ESCROW_ABI,
         functionName: "executePayout",
         args: [BigInt(payoutId)],
       })
@@ -418,8 +418,8 @@ export function useCommunityContributions(communityId: number) {
   )
 
   const contractRead = useReadContract({
-    address: UMUNNA_POT_ADDRESS,
-    abi: UMUNNA_POT_ABI,
+    address: KREATR_ESCROW_ADDRESS,
+    abi: KREATR_ESCROW_ABI,
     functionName: "getCommunityContributions",
     args: [BigInt(communityId)],
     query: { enabled: liveContract && communityId >= 0 },
