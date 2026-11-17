@@ -7,6 +7,7 @@ import {
   AwardIcon,
   BriefcaseIcon,
   CheckCircle2Icon,
+  ExternalLinkIcon,
   FolderKanbanIcon,
   LinkIcon,
   ShieldCheckIcon,
@@ -212,8 +213,14 @@ export default function CreatorDashboardPage() {
               {formatNgn(lockedForMeNgn)}
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-xs text-muted-foreground">
-            Guaranteed &amp; waiting for your video approval
+          <CardContent className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>Guaranteed &amp; waiting for your video approval</span>
+            <Link
+              href="/creator/projects"
+              className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+            >
+              Verify on BaseScan <ExternalLinkIcon className="size-3" />
+            </Link>
           </CardContent>
         </Card>
 
@@ -299,6 +306,30 @@ export default function CreatorDashboardPage() {
                             ? "Video Submitted (AI Checked ✓)"
                             : "Completed & Paid ✓"}
                     </Badge>
+                    {proj.escrowFunding && (
+                      <a
+                        href={`https://sepolia.basescan.org/tx/${proj.escrowFunding.txHash}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground transition hover:text-primary"
+                        title="Verify escrow deposit on BaseScan"
+                      >
+                        <span>Escrow Proof</span>
+                        <ExternalLinkIcon className="size-3" />
+                      </a>
+                    )}
+                    {proj.escrowRelease && (
+                      <a
+                        href={`https://sepolia.basescan.org/tx/${proj.escrowRelease.txHash}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400 transition hover:underline"
+                        title="Verify release receipt on BaseScan"
+                      >
+                        <span>Payout Receipt</span>
+                        <ExternalLinkIcon className="size-3" />
+                      </a>
+                    )}
                   </div>
                   <h3 className="font-display text-base font-bold">{proj.campaignTitle}</h3>
                   <p className="text-xs text-muted-foreground">

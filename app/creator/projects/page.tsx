@@ -258,21 +258,21 @@ export default function CreatorProjectsPage() {
           if (!val) setSubmittingProject(null)
         }}
       >
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-xl">
           {submittingProject && (
             <>
               <DialogHeader>
                 <DialogTitle className="font-display text-lg">
                   Upload Finished Video to Cloudinary &amp; Run AI Check
                 </DialogTitle>
-                <DialogDescription>
+                <DialogDescription className="text-xs leading-relaxed">
                   Select your finished video file to upload to Cloudinary CDN, then our AI will verify that it follows all {submittingProject.briefRequirements.length} campaign instructions.
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={(e) => void handleSubmitDeliverable(e)} className="space-y-3.5">
-                <div className="space-y-1.5 rounded-2xl border border-primary/30 bg-primary/5 p-3.5">
+              <form onSubmit={(e) => void handleSubmitDeliverable(e)} className="space-y-4">
+                <div className="space-y-2 rounded-2xl border border-primary/30 bg-primary/5 p-4">
                   <Label htmlFor="cr-file" className="flex items-center gap-1.5 text-xs font-bold text-primary">
-                    <UploadCloudIcon className="size-4" />
+                    <UploadCloudIcon className="size-4 shrink-0" />
                     <span>Select Video File from Device (Uploads to Cloudinary CDN)</span>
                   </Label>
                   <Input
@@ -281,51 +281,58 @@ export default function CreatorProjectsPage() {
                     accept="video/*"
                     disabled={uploadingFile}
                     onChange={(e) => void handleFileUpload(e)}
-                    className="bg-card text-xs"
+                    className="bg-card text-xs cursor-pointer"
                   />
                   {uploadingFile && (
                     <div className="flex items-center gap-1.5 text-xs text-primary">
-                      <Loader2Icon className="size-3.5 animate-spin" />
+                      <Loader2Icon className="size-3.5 animate-spin shrink-0" />
                       <span>Uploading video to Cloudinary CDN...</span>
                     </div>
                   )}
                   {mediaUrl.includes("res.cloudinary.com") && !uploadingFile && (
-                    <div className="flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400">
-                      <CheckCircle2Icon className="size-3.5" />
-                      <span className="truncate">Cloudinary CDN Ready: {mediaUrl}</span>
+                    <div className="flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1.5 text-[11px] text-emerald-600 dark:text-emerald-400">
+                      <CheckCircle2Icon className="size-3.5 shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <span className="font-semibold">Cloudinary CDN Ready: </span>
+                        <span className="font-mono break-all opacity-85">{mediaUrl}</span>
+                      </div>
                     </div>
                   )}
                 </div>
 
-                <div className="space-y-1">
-                  <Label htmlFor="cr-ts">Key Video Timestamps</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="cr-ts" className="text-xs font-semibold">Key Video Timestamps</Label>
                   <Input
                     id="cr-ts"
                     value={keyTimestamps}
                     onChange={(e) => setKeyTimestamps(e.target.value)}
+                    placeholder="e.g. 0:01 Hook · 0:15 Product Reveal · 0:38 Referral Code CTA"
+                    className="text-xs"
                     required
                   />
                 </div>
-                <div className="space-y-1">
-                  <Label htmlFor="cr-notes">How You Followed the Instructions</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="cr-notes" className="text-xs font-semibold">How You Followed the Instructions</Label>
                   <textarea
                     id="cr-notes"
-                    rows={3}
+                    rows={4}
                     value={captionNotes}
                     onChange={(e) => setCaptionNotes(e.target.value)}
-                    className="w-full rounded-xl border border-input bg-card p-3 text-xs"
+                    placeholder="Describe how your video incorporated each campaign requirement..."
+                    className="w-full resize-none rounded-xl border border-input bg-card p-3 text-xs leading-relaxed outline-none focus-visible:ring-1 focus-visible:ring-ring"
                     required
                   />
                 </div>
                 <Button
                   type="submit"
+                  size="default"
                   disabled={evaluating || uploadingFile}
-                  className="w-full rounded-full"
+                  className="w-full gap-2 rounded-full font-semibold"
                 >
                   {evaluating ? (
-                    <Loader2Icon className="size-4 animate-spin" />
+                    <Loader2Icon className="size-4 animate-spin shrink-0" />
                   ) : (
-                    <BotIcon className="size-4" />
+                    <BotIcon className="size-4 shrink-0" />
                   )}
                   Submit Video &amp; Run AI Check
                 </Button>

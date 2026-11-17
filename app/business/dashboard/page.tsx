@@ -5,6 +5,7 @@ import Link from "next/link"
 import {
   ArrowRightIcon,
   CheckCircle2Icon,
+  ExternalLinkIcon,
   LockIcon,
   PlayCircleIcon,
   PlusCircleIcon,
@@ -223,6 +224,18 @@ export default function BusinessDashboardPage() {
                     <span className="text-xs font-semibold text-emerald-500">
                       ✓ AI Check Passed ({proj.submission?.aiEvaluation?.overallScore}/100)
                     </span>
+                    {proj.escrowFunding && (
+                      <a
+                        href={`https://sepolia.basescan.org/tx/${proj.escrowFunding.txHash}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground transition hover:text-primary"
+                        title="Verify escrow deposit on BaseScan"
+                      >
+                        <span>Escrow on BaseScan</span>
+                        <ExternalLinkIcon className="size-3" />
+                      </a>
+                    )}
                   </div>
                   <h3 className="font-display text-lg font-bold">
                     {proj.creatorName} uploaded her finished video for &ldquo;{proj.campaignTitle}&rdquo;
@@ -309,8 +322,14 @@ export default function BusinessDashboardPage() {
               {formatNgn(totalEscrowLockedNgn)}
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-xs text-muted-foreground">
-            Protected until you approve the creators&apos; videos
+          <CardContent className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>Protected until you approve the creators&apos; videos</span>
+            <Link
+              href="/business/projects"
+              className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+            >
+              Verify on BaseScan <ExternalLinkIcon className="size-3" />
+            </Link>
           </CardContent>
         </Card>
 

@@ -213,9 +213,9 @@ export default function CreatorPortfolioPage() {
                   </div>
                 )}
                 {mediaUrl.includes("res.cloudinary.com") && !uploadingFile && (
-                  <div className="flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400">
-                    <CheckCircle2Icon className="size-3.5" />
-                    <span className="truncate">Cloudinary CDN Ready: {mediaUrl}</span>
+                  <div className="flex min-w-0 items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2Icon className="size-3.5 shrink-0" />
+                    <span className="min-w-0 truncate">Cloudinary CDN Ready: {mediaUrl}</span>
                   </div>
                 )}
               </div>
