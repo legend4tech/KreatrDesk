@@ -12,6 +12,7 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
+import { BrandLogo } from "@/components/shared/BrandLogo"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -85,9 +86,7 @@ export default function KreatrRegisterPage() {
       <div className="mx-auto w-full max-w-lg space-y-6">
         <div className="flex flex-col items-center text-center">
           <Link href="/" className="mb-3 flex items-center gap-2.5">
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
-              <SparklesIcon className="size-5" />
-            </div>
+            <BrandLogo size={44} />
             <span className="font-display text-2xl font-black tracking-tight">
               KreatrDesk
             </span>

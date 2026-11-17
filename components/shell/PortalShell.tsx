@@ -24,6 +24,7 @@ import {
 } from "lucide-react"
 import { useTheme } from "next-themes"
 
+import { BrandLogo } from "@/components/shared/BrandLogo"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -100,17 +101,11 @@ export function PortalShell({
           onClick={onNavigate}
           className="flex items-center gap-3 px-2"
         >
-          <div className="flex size-9 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-xs">
-            <SparklesIcon className="size-4" />
-          </div>
-          <div>
-            <span className="font-display text-lg font-extrabold tracking-tight">
-              KreatrDesk
-            </span>
-            <p className="text-[11px] font-medium text-primary">
-              {portalRole === "business" ? "Business Account" : "Creator Studio"}
-            </p>
-          </div>
+          <BrandLogo
+            size={36}
+            showWordmark
+            subtitle={portalRole === "business" ? "Business Account" : "Creator Studio"}
+          />
         </Link>
 
         {/* Signed-In User Box */}

@@ -13,6 +13,7 @@ import {
   VideoIcon,
 } from "lucide-react"
 
+import { BrandLogo } from "@/components/shared/BrandLogo"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,14 +25,12 @@ export default function KreatrDeskLandingPage() {
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
-              <SparklesIcon className="size-4" />
-            </div>
+            <BrandLogo size={36} />
             <div>
               <span className="font-display text-lg font-extrabold tracking-tight">
                 KreatrDesk
               </span>
-              <span className="ml-2 hidden rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary sm:inline-block">
+              <span className="ml-2 hidden rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-[10px] font-semibold text-primary sm:inline-block">
                 UGC · AI · Base Escrow · Attribution
               </span>
             </div>

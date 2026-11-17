@@ -13,6 +13,7 @@ import {
   UserCheckIcon,
 } from "lucide-react"
 
+import { BrandLogo } from "@/components/shared/BrandLogo"
 import { Badge } from "@/components/ui/badge"
 import { useActiveRole } from "@/hooks/useKreatrData"
 import { cn } from "@/lib/utils"
@@ -70,9 +71,7 @@ export function Sidebar({ className, onNavigate }: SidebarProps) {
           onClick={onNavigate}
           className="flex items-center gap-3 px-2"
         >
-          <div className="flex size-10 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
-            <SparklesIcon className="size-5" />
-          </div>
+          <BrandLogo size={38} />
           <div>
             <div className="flex items-center gap-1.5">
               <span className="font-display text-lg font-extrabold tracking-tight">
