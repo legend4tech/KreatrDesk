@@ -25,6 +25,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Progress } from "@/components/ui/progress"
 import { useKreatrOverview } from "@/hooks/useKreatrData"
+import { useNigerianStates } from "@/hooks/useNigerianStates"
 import { useRoqquRates } from "@/hooks/useRoqquRates"
 import { formatNgn } from "@/lib/format"
 import type { CreatorProfile, PortfolioSample } from "@/types"
@@ -32,6 +33,7 @@ import type { CreatorProfile, PortfolioSample } from "@/types"
 export default function BusinessCreatorDiscoveryPage() {
   const { data } = useKreatrOverview()
   const { data: ratesData } = useRoqquRates()
+  const { states } = useNigerianStates()
 
   const ngnPerUsd = ratesData?.ngnPerUsd ?? 1375
   const samples = data?.portfolioSamples ?? []
@@ -50,17 +52,12 @@ export default function BusinessCreatorDiscoveryPage() {
     "Fintech & Apps",
     "Hospitality & Dining",
   ]
-  const locations = [
-    "ALL",
-    "Lagos (Yaba / Lekki)",
-    "Lagos (Mainland / Akoka)",
-    "Abuja (Wuse II / Maitama)",
-    "Enugu (Independence Layout)",
-  ]
 
   const filteredSamples = samples.filter((s) => {
     const matchCategory = selectedCategory === "ALL" || s.category === selectedCategory
-    const matchLocation = selectedLocation === "ALL" || s.creatorLocation === selectedLocation
+    const matchLocation =
+      selectedLocation === "ALL" ||
+      s.creatorLocation.toLowerCase().includes(selectedLocation.toLowerCase())
     const q = search.trim().toLowerCase()
     const matchSearch =
       !q ||
@@ -126,11 +123,21 @@ export default function BusinessCreatorDiscoveryPage() {
             onChange={(e) => setSelectedLocation(e.target.value)}
             className="w-full rounded-xl border border-input bg-background px-3 py-2 text-xs"
           >
-            {locations.map((loc) => (
-              <option key={loc} value={loc}>
-                {loc === "ALL" ? "All Locations (Lagos, Abuja, Enugu)" : loc}
-              </option>
-            ))}
+            <option value="ALL">All States &amp; Locations ({states.length} States + FCT)</option>
+            <optgroup label="Active Creator Hubs">
+              {Array.from(new Set(samples.map((s) => s.creatorLocation).filter(Boolean))).map((loc) => (
+                <option key={loc} value={loc}>
+                  {loc}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="Filter by Nigerian State">
+              {states.map((st) => (
+                <option key={st.name} value={st.name}>
+                  {st.name} ({st.capital})
+                </option>
+              ))}
+            </optgroup>
           </select>
         </div>
       </div>

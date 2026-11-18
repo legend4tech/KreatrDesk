@@ -43,6 +43,7 @@ export default function BusinessProjectsAndEscrowPage() {
 
   const handleApproveAndRelease = async (project: CreatorProject) => {
     setReleasingId(project.id)
+    const toastId = toast.loading(`Approving video and releasing ${formatNgn(project.agreedBudgetNgn)}...`)
     try {
       const res = await fetch("/api/kreatr/projects/release", {
         method: "POST",
@@ -53,17 +54,18 @@ export default function BusinessProjectsAndEscrowPage() {
           settlementRail: "Instant Bank Settlement + Escrow Proof",
         }),
       })
-      const payload = (await res.json()) as {
+      const payload = (await res.json().catch(() => ({}))) as {
         message?: string
         receiptId?: string
       }
       if (!res.ok) throw new Error(payload.message || "Payment release failed")
       invalidate()
-      toast.success(
-        `Video Approved! ${formatNgn(project.agreedBudgetNgn)} has been paid to ${project.creatorName}.`
-      )
+      toast.success("Video Approved & Payment Released!", {
+        id: toastId,
+        description: `${formatNgn(project.agreedBudgetNgn)} has been disbursed to ${project.creatorName}. Escrow completed.`,
+      })
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Release failed")
+      toast.error(err instanceof Error ? err.message : "Release failed", { id: toastId })
     } finally {
       setReleasingId(null)
     }
@@ -71,6 +73,7 @@ export default function BusinessProjectsAndEscrowPage() {
 
   const handleRequestRevision = async (project: CreatorProject) => {
     setReleasingId(project.id)
+    const toastId = toast.loading("Sending revision request...")
     try {
       const res = await fetch("/api/kreatr/projects/release", {
         method: "POST",
@@ -81,11 +84,15 @@ export default function BusinessProjectsAndEscrowPage() {
           feedback: "Please hold the promo code on screen 2 seconds longer at the end.",
         }),
       })
-      if (!res.ok) throw new Error("Revision request failed")
+      const payload = (await res.json().catch(() => ({}))) as { message?: string }
+      if (!res.ok) throw new Error(payload.message || "Revision request failed")
       invalidate()
-      toast.info(`Asked ${project.creatorName} for a revision. Your money stays safely in escrow.`)
+      toast.info(`Revision requested from ${project.creatorName}`, {
+        id: toastId,
+        description: "Your funds remain protected in escrow while the creator resubmits.",
+      })
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not request revision")
+      toast.error(err instanceof Error ? err.message : "Could not request revision", { id: toastId })
     } finally {
       setReleasingId(null)
     }

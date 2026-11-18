@@ -26,6 +26,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useInvalidateKreatr, useKreatrOverview } from "@/hooks/useKreatrData"
+import { useNigerianStates } from "@/hooks/useNigerianStates"
 import { useRoqquRates } from "@/hooks/useRoqquRates"
 import { formatNgn } from "@/lib/format"
 
@@ -33,6 +34,7 @@ export default function BusinessCampaignsPage() {
   const router = useRouter()
   const { data } = useKreatrOverview()
   const { data: ratesData } = useRoqquRates()
+  const { states } = useNigerianStates()
   const invalidate = useInvalidateKreatr()
 
   const ngnPerUsd = ratesData?.ngnPerUsd ?? 1375
@@ -60,14 +62,19 @@ export default function BusinessCampaignsPage() {
 
   const handleCreateCampaign = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!title.trim() || !summary.trim()) {
+      toast.error("Please enter a title and summary for the campaign.")
+      return
+    }
     setCreating(true)
+    const toastId = toast.loading("Saving campaign to MongoDB Atlas...")
     try {
       const res = await fetch("/api/kreatr/campaigns", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title,
-          summary,
+          title: title.trim(),
+          summary: summary.trim(),
           budgetPerCreatorNgn: Number(budgetNgn) || 120000,
           ngnPerUsd,
           creatorsNeeded: Number(creatorsNeeded) || 2,
@@ -86,14 +93,18 @@ export default function BusinessCampaignsPage() {
             .filter(Boolean),
         }),
       })
-      if (!res.ok) throw new Error("Failed to create campaign")
+      const payload = (await res.json().catch(() => ({}))) as { message?: string }
+      if (!res.ok) throw new Error(payload.message || "Failed to create campaign")
       invalidate()
-      toast.success("Campaign saved to MongoDB Atlas!")
+      toast.success("Campaign Published Successfully!", {
+        id: toastId,
+        description: `"${title.trim()}" is now open for creator applications.`,
+      })
       setTitle("")
       setSummary("")
       setCreateOpen(false)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed")
+      toast.error(err instanceof Error ? err.message : "Failed to create campaign", { id: toastId })
     } finally {
       setCreating(false)
     }
@@ -101,6 +112,7 @@ export default function BusinessCampaignsPage() {
 
   const handleSelectCreator = async (applicationId: string) => {
     setSelectingAppId(applicationId)
+    const toastId = toast.loading("Selecting creator & initializing project...")
     try {
       const res = await fetch("/api/kreatr/applications", {
         method: "POST",
@@ -111,12 +123,16 @@ export default function BusinessCampaignsPage() {
           ngnPerUsd,
         }),
       })
-      if (!res.ok) throw new Error("Failed to select creator")
+      const payload = (await res.json().catch(() => ({}))) as { message?: string }
+      if (!res.ok) throw new Error(payload.message || "Failed to select creator")
       invalidate()
-      toast.success("Creator selected! Project Workspace & Referral Code created.")
+      toast.success("Creator Selected Successfully!", {
+        id: toastId,
+        description: "Project workspace, escrow deposit terms, and referral promo code initialized.",
+      })
       router.push("/business/projects")
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Selection failed")
+      toast.error(err instanceof Error ? err.message : "Creator selection failed", { id: toastId })
     } finally {
       setSelectingAppId(null)
     }
@@ -233,9 +249,36 @@ export default function BusinessCampaignsPage() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label htmlFor="c-loc">Target Locations</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="c-loc">Target Locations</Label>
+                    <select
+                      className="rounded-lg border border-input bg-card px-2 py-0.5 text-[11px] text-muted-foreground"
+                      onChange={(e) => {
+                        const val = e.target.value
+                        if (!val) return
+                        if (val === "ALL") {
+                          setLocationsText("Nationwide (All 36 States + FCT)")
+                        } else if (!locationsText.includes(val)) {
+                          setLocationsText((prev) => (prev ? `${prev}, ${val}` : val))
+                        }
+                        e.target.value = ""
+                      }}
+                      defaultValue=""
+                    >
+                      <option value="" disabled>
+                        + Add State from API...
+                      </option>
+                      <option value="ALL">🌐 Nationwide (All 36 States + FCT)</option>
+                      {states.map((st) => (
+                        <option key={st.code} value={st.name}>
+                          {st.name} ({st.capital})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                   <Input
                     id="c-loc"
+                    placeholder="e.g. Lagos, Abuja, Rivers, or Nationwide"
                     value={locationsText}
                     onChange={(e) => setLocationsText(e.target.value)}
                   />

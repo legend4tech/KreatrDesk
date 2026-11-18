@@ -41,7 +41,9 @@ export default function BusinessCustomerSalesPage() {
   const copySmartLink = (code: string) => {
     const url = `${window.location.origin}/r/${code}`
     void navigator.clipboard.writeText(url)
-    toast.success(`Copied Creator Smart Link: ${url}`)
+    toast.success("Creator Smart Link Copied!", {
+      description: `${url} (Directs customers to WhatsApp/Store with promo code ${code}).`,
+    })
   }
 
   return (

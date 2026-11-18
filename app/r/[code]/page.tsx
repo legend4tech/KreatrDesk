@@ -60,6 +60,13 @@ export default function PublicCreatorReferralLandingPage() {
     customLabel: string
   ) => {
     setSubmittingAction(eventType)
+    const toastId = toast.loading(
+      eventType === "CONVERSION"
+        ? "Processing test order & recording conversion..."
+        : eventType === "ENQUIRY"
+          ? "Routing to WhatsApp..."
+          : "Applying promo code..."
+    )
     try {
       const res = await fetch("/api/kreatr/attribution", {
         method: "POST",
@@ -72,20 +79,28 @@ export default function PublicCreatorReferralLandingPage() {
           amountNgn: 24000,
         }),
       })
-      if (!res.ok) throw new Error("Could not record customer action")
+      const payload = (await res.json().catch(() => ({}))) as { message?: string }
+      if (!res.ok) throw new Error(payload.message || "Could not record customer action")
       invalidate()
       if (eventType === "CONVERSION") {
         setCompletedOrder(true)
       }
       toast.success(
         eventType === "CONVERSION"
-          ? `Order Completed! ₦24,000 sale recorded under ${project?.creatorName || code}`
+          ? `Order Completed! ₦24,000 Sale Attributed`
           : eventType === "ENQUIRY"
-            ? `WhatsApp enquiry recorded under ${project?.creatorName || code}!`
-            : `20% Discount Code (${code}) applied!`
+            ? `WhatsApp Enquiry Recorded!`
+            : `20% Discount Code (${code}) Applied!`,
+        {
+          id: toastId,
+          description:
+            eventType === "CONVERSION"
+              ? `Sale confirmed and credited to ${project?.creatorName || code}. ROI dashboard updated.`
+              : `Attributed to ${project?.creatorName || code}'s campaign.`,
+        }
       )
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed")
+      toast.error(err instanceof Error ? err.message : "Failed to record customer action", { id: toastId })
     } finally {
       setSubmittingAction(null)
     }

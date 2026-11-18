@@ -7,6 +7,7 @@ import {
   MapPinIcon,
   PlayIcon,
   PlusIcon,
+  Trash2Icon,
   UploadCloudIcon,
   VideoIcon,
 } from "lucide-react"
@@ -43,6 +44,7 @@ export default function CreatorPortfolioPage() {
   const [publishOpen, setPublishOpen] = React.useState(false)
   const [publishing, setPublishing] = React.useState(false)
   const [uploadingFile, setUploadingFile] = React.useState(false)
+  const [deletingId, setDeletingId] = React.useState<string | null>(null)
   const [playingSample, setPlayingSample] = React.useState<PortfolioSample | null>(null)
 
   const [title, setTitle] = React.useState("")
@@ -61,6 +63,7 @@ export default function CreatorPortfolioPage() {
     const file = e.target.files?.[0]
     if (!file) return
     setUploadingFile(true)
+    const toastId = toast.loading("Uploading video to Cloudinary CDN...")
     try {
       const formData = new FormData()
       formData.append("file", file)
@@ -69,7 +72,7 @@ export default function CreatorPortfolioPage() {
         method: "POST",
         body: formData,
       })
-      const payload = (await res.json()) as {
+      const payload = (await res.json().catch(() => ({}))) as {
         url?: string
         thumbnailUrl?: string
         message?: string
@@ -79,9 +82,12 @@ export default function CreatorPortfolioPage() {
       }
       setMediaUrl(payload.url)
       if (payload.thumbnailUrl) setThumbnailUrl(payload.thumbnailUrl)
-      toast.success("Video uploaded to Cloudinary CDN!")
+      toast.success("Video uploaded to Cloudinary CDN!", {
+        id: toastId,
+        description: "Your video was uploaded and streaming URLs are ready.",
+      })
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Upload failed")
+      toast.error(err instanceof Error ? err.message : "Upload failed", { id: toastId })
     } finally {
       setUploadingFile(false)
     }
@@ -89,15 +95,20 @@ export default function CreatorPortfolioPage() {
 
   const handlePublishSample = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!title.trim() || !mediaUrl.trim()) {
+      toast.error("Please provide both a video title and URL.")
+      return
+    }
     setPublishing(true)
+    const toastId = toast.loading("Publishing sample to MongoDB Atlas...")
     try {
       const res = await fetch("/api/kreatr/portfolio", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           creatorId: user.userId || "cr-adaobi",
-          title,
-          description,
+          title: title.trim(),
+          description: description.trim(),
           category,
           mediaType: "video",
           mediaUrl,
@@ -109,16 +120,41 @@ export default function CreatorPortfolioPage() {
           rateNgn: Number(rateNgn) || 85000,
         }),
       })
-      if (!res.ok) throw new Error("Failed to publish sample")
+      const payload = (await res.json().catch(() => ({}))) as { message?: string }
+      if (!res.ok) throw new Error(payload.message || "Failed to publish sample")
       invalidate()
-      toast.success("Sample video saved to MongoDB Atlas!")
+      toast.success("Sample Video Published!", {
+        id: toastId,
+        description: `"${title.trim()}" is now visible to businesses looking to hire.`,
+      })
       setTitle("")
       setDescription("")
       setPublishOpen(false)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not publish")
+      toast.error(err instanceof Error ? err.message : "Could not publish sample", { id: toastId })
     } finally {
       setPublishing(false)
+    }
+  }
+
+  const handleDeleteSample = async (sampleId: string) => {
+    setDeletingId(sampleId)
+    const toastId = toast.loading("Removing sample video from portfolio...")
+    try {
+      const res = await fetch(`/api/kreatr/portfolio?sampleId=${sampleId}`, {
+        method: "DELETE",
+      })
+      const payload = (await res.json().catch(() => ({}))) as { message?: string }
+      if (!res.ok) throw new Error(payload.message || "Failed to delete sample")
+      invalidate()
+      toast.success("Sample video deleted successfully!", {
+        id: toastId,
+        description: "The video has been removed from your portfolio and discovery listing.",
+      })
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not delete sample", { id: toastId })
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -301,9 +337,23 @@ export default function CreatorPortfolioPage() {
                     </Badge>
                   ))}
                 </div>
-                <span className="font-mono text-xs font-bold text-primary">
-                  Rate: {formatNgn(s.rateNgn)}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-xs font-bold text-primary">
+                    {formatNgn(s.rateNgn)}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={deletingId === s.id}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      void handleDeleteSample(s.id)
+                    }}
+                    className="flex size-7 items-center justify-center rounded-lg border border-border/70 text-muted-foreground transition hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
+                    title="Delete sample video"
+                  >
+                    <Trash2Icon className="size-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
           </Card>

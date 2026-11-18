@@ -65,6 +65,7 @@ export function FundProjectEscrowModal({
       return
     }
     setCreatingCheckout(true)
+    const toastId = toast.loading("Generating instant payment link via Roqqu...")
     try {
       const res = await fetch("/api/roqqu/checkout", {
         method: "POST",
@@ -78,12 +79,15 @@ export function FundProjectEscrowModal({
           contributorEmail: businessEmail,
         }),
       })
-      const payload = (await res.json()) as RoqquCheckoutResult & { message?: string }
+      const payload = (await res.json().catch(() => ({}))) as RoqquCheckoutResult & { message?: string }
       if (!res.ok) throw new Error(payload.message || "Failed to generate payment link.")
       setCheckout(payload)
-      toast.success("Naira Bank Transfer Link Ready!")
+      toast.success("Naira Bank Transfer Link Ready!", {
+        id: toastId,
+        description: `Pay ${formatNgn(parsedNgn)} to the dedicated account or checkout page.`,
+      })
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Payment link failed.")
+      toast.error(err instanceof Error ? err.message : "Payment link generation failed.", { id: toastId })
     } finally {
       setCreatingCheckout(false)
     }
@@ -92,6 +96,7 @@ export function FundProjectEscrowModal({
   const handleSimulateWebhook = async () => {
     if (!checkout) return
     setSimulatingWebhook(true)
+    const toastId = toast.loading("Confirming deposit & locking funds in escrow vault...")
     try {
       const isBtc = checkout.rail === "crypto_wallet" && network === "bitcoin"
       const res = await fetch("/api/roqqu/webhook", {
@@ -107,7 +112,7 @@ export function FundProjectEscrowModal({
           depositedTokenAmount: isBtc ? 0.002 : 0,
         }),
       })
-      const result = (await res.json()) as RoqquWebhookResult & { message?: string }
+      const result = (await res.json().catch(() => ({}))) as RoqquWebhookResult & { message?: string }
       if (!res.ok) throw new Error(result.message || "Payment verification failed.")
 
       await applyRoqquWebhookCredit({
@@ -130,13 +135,14 @@ export function FundProjectEscrowModal({
       if (!fundRes.ok) throw new Error("Escrow state verification failed.")
 
       invalidateKreatr()
-      toast.success(
-        `Payment Locked Safely! ${project.creatorName} has been notified to start filming.`
-      )
+      toast.success("Payment Locked Safely in Escrow!", {
+        id: toastId,
+        description: `${formatNgn(project.agreedBudgetNgn)} (≈ $${result.usdcCredited.toFixed(2)} USDC) is secure. ${project.creatorName} has been notified to film.`,
+      })
       setCheckout(null)
       setOpen(false)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to confirm deposit.")
+      toast.error(err instanceof Error ? err.message : "Failed to confirm deposit.", { id: toastId })
     } finally {
       setSimulatingWebhook(false)
     }
@@ -149,6 +155,7 @@ export function FundProjectEscrowModal({
       return
     }
     setSubmittingWeb3(true)
+    const toastId = toast.loading("Depositing USDC into Base Sepolia Escrow Vault...")
     try {
       const txHash = await contributeUsdc({
         communityId: project.onChainVaultId,
@@ -174,12 +181,13 @@ export function FundProjectEscrowModal({
       if (!fundRes.ok) throw new Error("Backend escrow verification failed.")
 
       invalidateKreatr()
-      toast.success(
-        `Payment Locked Safely! ${project.creatorName} can now start filming.`
-      )
+      toast.success("Payment Locked on Base Sepolia!", {
+        id: toastId,
+        description: `Smart contract vault locked ${parsedUsdc.toFixed(2)} USDC. ${project.creatorName} can now start filming.`,
+      })
       setOpen(false)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Crypto deposit failed.")
+      toast.error(err instanceof Error ? err.message : "Crypto deposit failed.", { id: toastId })
     } finally {
       setSubmittingWeb3(false)
     }

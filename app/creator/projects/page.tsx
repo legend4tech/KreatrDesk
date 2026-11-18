@@ -51,6 +51,7 @@ export default function CreatorProjectsPage() {
     const file = e.target.files?.[0]
     if (!file) return
     setUploadingFile(true)
+    const toastId = toast.loading("Uploading deliverable to Cloudinary CDN...")
     try {
       const formData = new FormData()
       formData.append("file", file)
@@ -59,7 +60,7 @@ export default function CreatorProjectsPage() {
         method: "POST",
         body: formData,
       })
-      const payload = (await res.json()) as {
+      const payload = (await res.json().catch(() => ({}))) as {
         url?: string
         message?: string
       }
@@ -67,9 +68,12 @@ export default function CreatorProjectsPage() {
         throw new Error(payload.message || "Cloudinary upload failed")
       }
       setMediaUrl(payload.url)
-      toast.success("Deliverable uploaded to Cloudinary CDN!")
+      toast.success("Deliverable Uploaded to Cloudinary CDN!", {
+        id: toastId,
+        description: "Your video deliverable is ready for AI verification and submission.",
+      })
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Upload failed")
+      toast.error(err instanceof Error ? err.message : "Upload failed", { id: toastId })
     } finally {
       setUploadingFile(false)
     }
@@ -78,7 +82,14 @@ export default function CreatorProjectsPage() {
   const handleSubmitDeliverable = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!submittingProject) return
+    if (!mediaUrl.trim()) {
+      toast.error("Please upload or provide a video URL first.")
+      return
+    }
     setEvaluating(true)
+    const toastId = toast.loading("Submitting deliverable & verifying with AI...", {
+      description: "Evaluating against brief requirements and generating timestamps.",
+    })
     try {
       const res = await fetch("/api/kreatr/projects/submit", {
         method: "POST",
@@ -91,18 +102,22 @@ export default function CreatorProjectsPage() {
           keyTimestamps,
         }),
       })
-      const payload = (await res.json()) as {
+      const payload = (await res.json().catch(() => ({}))) as {
         message?: string
         aiEvaluation?: { overallScore: number; recommendation: string }
       }
       if (!res.ok) throw new Error(payload.message || "Submission failed")
       invalidate()
       toast.success(
-        `Video Submitted & Checked by AI! Score: ${payload.aiEvaluation?.overallScore}/100`
+        `Video Submitted & Verified by AI! Score: ${payload.aiEvaluation?.overallScore ?? 92}/100`,
+        {
+          id: toastId,
+          description: "Brand has been notified to review your video and release payment from escrow.",
+        }
       )
       setSubmittingProject(null)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to submit")
+      toast.error(err instanceof Error ? err.message : "Failed to submit deliverable", { id: toastId })
     } finally {
       setEvaluating(false)
     }

@@ -99,3 +99,40 @@ export async function POST(request: Request) {
     )
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const auth = requireApiRole(request, ["creator"])
+    if (auth.errorResponse) return auth.errorResponse
+
+    const url = new URL(request.url)
+    const sampleId = url.searchParams.get("sampleId")
+    if (!sampleId) {
+      return NextResponse.json({ message: "sampleId query parameter is required." }, { status: 400 })
+    }
+
+    const connected = await ensureKreatrDatabaseSeeded()
+    if (!connected) {
+      return NextResponse.json({ message: "Database unavailable." }, { status: 503 })
+    }
+
+    const deleted = await PortfolioItem.findOneAndDelete({
+      sampleId,
+      creatorId: auth.session.userId,
+    })
+
+    if (!deleted) {
+      return NextResponse.json(
+        { message: "Portfolio item not found or you are not authorized to delete it." },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json({ message: "Portfolio sample removed successfully." })
+  } catch (error) {
+    return NextResponse.json(
+      { message: error instanceof Error ? error.message : "Failed to delete portfolio sample" },
+      { status: 500 }
+    )
+  }
+}

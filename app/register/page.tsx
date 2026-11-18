@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import {
   ArrowRightIcon,
   Building2Icon,
@@ -20,18 +20,25 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useKreatrSession, type KreatrSessionUser } from "@/hooks/useKreatrData"
+import { useNigerianStates } from "@/hooks/useNigerianStates"
+import { GEOPOLITICAL_ZONES } from "@/lib/nigerianStates"
 import type { UserRole } from "@/types"
 
-export default function KreatrRegisterPage() {
+function RegisterForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { saveSession } = useKreatrSession()
 
-  const [role, setRole] = React.useState<UserRole>("creator")
+  const initialRole = searchParams.get("role") === "business" ? "business" : "creator"
+  const [role, setRole] = React.useState<UserRole>(initialRole)
   const [name, setName] = React.useState("")
   const [handle, setHandle] = React.useState("")
   const [email, setEmail] = React.useState("")
   const [password, setPassword] = React.useState("")
-  const [location, setLocation] = React.useState("Lagos (Yaba / Lekki)")
+  const { states } = useNigerianStates()
+  const [selectedState, setSelectedState] = React.useState("Lagos")
+  const [selectedHub, setSelectedHub] = React.useState("Lagos (Yaba / Lekki)")
+  const [customArea, setCustomArea] = React.useState("")
   const [companyCategory, setCompanyCategory] = React.useState("Food & Beverage")
   const [skillsInput, setSkillsInput] = React.useState(
     "UGC Video Production, Direct-Response Hooks, Pidgin Voiceover"
@@ -39,9 +46,47 @@ export default function KreatrRegisterPage() {
   const [startingRateNgn, setStartingRateNgn] = React.useState("80000")
   const [loading, setLoading] = React.useState(false)
 
+  React.useEffect(() => {
+    const r = searchParams.get("role")
+    if (r === "business" || r === "creator") {
+      setRole(r)
+    }
+  }, [searchParams])
+
+  const currentState = states.find((s) => s.name === selectedState)
+
+  const effectiveLocation = React.useMemo(() => {
+    if (selectedState === "Nationwide / Remote") {
+      return "Nationwide / Remote (Digital UGC)"
+    }
+    if (selectedHub === "custom") {
+      return customArea.trim()
+        ? `${customArea.trim()}, ${selectedState}`
+        : `${selectedState}, Nigeria`
+    }
+    if (selectedHub.includes(selectedState)) {
+      return selectedHub
+    }
+    return `${selectedHub}, ${selectedState}`
+  }, [selectedState, selectedHub, customArea])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!name.trim()) {
+      toast.error("Please enter your name or company name.", { id: "auth-toast" })
+      return
+    }
+    if (!email.trim() || !password) {
+      toast.error("Please provide both email and password.", { id: "auth-toast" })
+      return
+    }
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters long.", { id: "auth-toast" })
+      return
+    }
+
     setLoading(true)
+    const toastId = toast.loading("Creating your account on MongoDB Atlas...", { id: "auth-toast" })
     try {
       const res = await fetch("/api/kreatr/auth", {
         method: "POST",
@@ -49,11 +94,11 @@ export default function KreatrRegisterPage() {
         body: JSON.stringify({
           mode: "register",
           role,
-          name,
-          handle,
-          email,
+          name: name.trim(),
+          handle: handle.trim(),
+          email: email.trim(),
           password,
-          location,
+          location: effectiveLocation,
           companyCategory,
           skills: skillsInput
             .split(",")
@@ -63,7 +108,7 @@ export default function KreatrRegisterPage() {
         }),
       })
 
-      const payload = (await res.json()) as {
+      const payload = (await res.json().catch(() => ({}))) as {
         user?: KreatrSessionUser
         message?: string
       }
@@ -72,10 +117,16 @@ export default function KreatrRegisterPage() {
       }
 
       saveSession(payload.user)
-      toast.success(`Account created in MongoDB Atlas! Welcome, ${payload.user.name}`, { id: "auth-toast" })
+      toast.success(`Account created! Welcome, ${payload.user.name}`, {
+        id: toastId,
+        description: `Registered as ${role === "business" ? "Business" : "Creator"}. Redirecting to dashboard...`,
+      })
       router.push(role === "business" ? "/business/dashboard" : "/creator/dashboard")
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not create account")
+      toast.error(err instanceof Error ? err.message : "Could not create account", {
+        id: toastId,
+        description: "Please check your information and try again.",
+      })
     } finally {
       setLoading(false)
     }
@@ -176,9 +227,10 @@ export default function KreatrRegisterPage() {
                   <Input
                     id="reg-pass"
                     type="password"
-                    placeholder="••••••••"
+                    placeholder="At least 4 characters"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    minLength={4}
                     required
                   />
                 </div>
@@ -186,22 +238,97 @@ export default function KreatrRegisterPage() {
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-1">
-                  <Label htmlFor="reg-loc">Primary City / Hub</Label>
+                  <Label htmlFor="reg-state">State / Region (All 36 States + FCT)</Label>
                   <select
-                    id="reg-loc"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
+                    id="reg-state"
+                    value={selectedState}
+                    onChange={(e) => {
+                      const nextState = e.target.value
+                      setSelectedState(nextState)
+                      if (nextState === "Nationwide / Remote") {
+                        setSelectedHub("Nationwide / Remote")
+                      } else {
+                        const found = states.find((s) => s.name === nextState)
+                        setSelectedHub(found?.majorHubs[0] || found?.capital || "custom")
+                      }
+                    }}
                     className="w-full rounded-xl border border-input bg-card px-3 py-2 text-xs"
                   >
-                    <option value="Lagos (Yaba / Lekki)">Lagos (Yaba / Lekki)</option>
-                    <option value="Lagos (Mainland / Akoka)">Lagos (Mainland / Akoka)</option>
-                    <option value="Abuja (Wuse II / Maitama)">Abuja (Wuse II / Maitama)</option>
-                    <option value="Enugu (Independence Layout)">Enugu (Independence Layout)</option>
+                    <option value="Nationwide / Remote">🌐 Nationwide / Remote (Digital UGC)</option>
+                    {GEOPOLITICAL_ZONES.map((zone) => {
+                      const zoneStates = states.filter((s) => s.zone === zone)
+                      if (!zoneStates.length) return null
+                      return (
+                        <optgroup key={zone} label={`${zone} (${zoneStates.length} States)`}>
+                          {zoneStates.map((s) => (
+                            <option key={s.code} value={s.name}>
+                              {s.name} ({s.capital})
+                            </option>
+                          ))}
+                        </optgroup>
+                      )
+                    })}
                   </select>
                 </div>
 
+                <div className="space-y-1">
+                  <Label htmlFor="reg-hub">
+                    {selectedState === "Nationwide / Remote"
+                      ? "Coverage Mode"
+                      : `City / District in ${selectedState}`}
+                  </Label>
+                  {selectedState === "Nationwide / Remote" ? (
+                    <Input
+                      readOnly
+                      value="Pan-Nigeria Remote Production"
+                      className="bg-card/50 text-xs text-muted-foreground"
+                    />
+                  ) : (
+                    <select
+                      id="reg-hub"
+                      value={selectedHub}
+                      onChange={(e) => setSelectedHub(e.target.value)}
+                      className="w-full rounded-xl border border-input bg-card px-3 py-2 text-xs"
+                    >
+                      <optgroup label={`Popular Cities & Creative Hubs in ${selectedState}`}>
+                        {currentState?.majorHubs.map((hub) => (
+                          <option key={hub} value={hub}>
+                            {hub}
+                          </option>
+                        ))}
+                      </optgroup>
+                      {currentState?.lgas && currentState.lgas.length > 0 && (
+                        <optgroup label={`All ${selectedState} Local Government Areas (LGAs)`}>
+                          {currentState.lgas.map((lga) => (
+                            <option key={lga} value={`${lga} (LGA)`}>
+                              {lga} LGA
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                      <option value="custom">✍️ Other / Specific Area or LGA in {selectedState}...</option>
+                    </select>
+                  )}
+                </div>
+              </div>
+
+              {selectedState !== "Nationwide / Remote" && selectedHub === "custom" && (
+                <div className="space-y-1">
+                  <Label htmlFor="reg-custom-area">Specify your City, Town, or LGA in {selectedState}</Label>
+                  <Input
+                    id="reg-custom-area"
+                    placeholder={`e.g. Tanke / GRA, ${selectedState}`}
+                    value={customArea}
+                    onChange={(e) => setCustomArea(e.target.value)}
+                    className="text-xs"
+                    required
+                  />
+                </div>
+              )}
+
+              <div className="grid gap-3 sm:grid-cols-2">
                 {role === "business" ? (
-                  <div className="space-y-1">
+                  <div className="space-y-1 sm:col-span-2">
                     <Label htmlFor="reg-cat">Industry Category</Label>
                     <select
                       id="reg-cat"
@@ -216,15 +343,27 @@ export default function KreatrRegisterPage() {
                     </select>
                   </div>
                 ) : (
-                  <div className="space-y-1">
-                    <Label htmlFor="reg-rate">Starting UGC Rate (NGN)</Label>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="reg-rate" className="text-xs">
+                        Starting UGC Rate (NGN)
+                      </Label>
+                      <span className="font-mono text-xs font-semibold text-primary">
+                        ₦{Number(startingRateNgn || 0).toLocaleString()} / video
+                      </span>
+                    </div>
                     <Input
                       id="reg-rate"
                       type="number"
+                      min="10000"
+                      step="5000"
                       value={startingRateNgn}
                       onChange={(e) => setStartingRateNgn(e.target.value)}
-                      className="font-mono"
+                      className="font-mono text-xs"
                     />
+                    <p className="text-[11px] leading-snug text-muted-foreground">
+                      <strong>UGC (User-Generated Content):</strong> Your base price per 60s video deliverable (e.g. TikTok/Reel with hooks &amp; product demo). Typical vetted creator rates range from ₦50,000 to ₦150,000.
+                    </p>
                   </div>
                 )}
               </div>
@@ -257,7 +396,10 @@ export default function KreatrRegisterPage() {
 
               <div className="text-center text-xs text-muted-foreground">
                 Already registered?{" "}
-                <Link href="/login" className="font-semibold text-primary hover:underline">
+                <Link
+                  href={`/login?role=${role}`}
+                  className="font-semibold text-primary hover:underline"
+                >
                   Sign in here
                 </Link>
               </div>
@@ -266,5 +408,19 @@ export default function KreatrRegisterPage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+export default function KreatrRegisterPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
+          <Loader2Icon className="size-6 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <RegisterForm />
+    </React.Suspense>
   )
 }

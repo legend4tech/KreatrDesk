@@ -46,7 +46,12 @@ export default function CreatorFindCampaignsPage() {
   const handleApply = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!applyingCampaign) return
+    if (!pitch.trim()) {
+      toast.error("Please provide a brief pitch for your application.")
+      return
+    }
     setSubmitting(true)
+    const toastId = toast.loading("Submitting application to brand...")
     try {
       const res = await fetch("/api/kreatr/applications", {
         method: "POST",
@@ -55,17 +60,20 @@ export default function CreatorFindCampaignsPage() {
           action: "apply",
           campaignId: applyingCampaign.id,
           creatorId: user.userId || "cr-adaobi",
-          pitch,
+          pitch: pitch.trim(),
           proposedRateNgn: applyingCampaign.budgetPerCreatorNgn,
         }),
       })
-      const payload = (await res.json()) as { message?: string }
+      const payload = (await res.json().catch(() => ({}))) as { message?: string }
       if (!res.ok) throw new Error(payload.message || "Application failed")
       invalidate()
-      toast.success("Application saved to MongoDB Atlas & sent to business!")
+      toast.success("Application Submitted Successfully!", {
+        id: toastId,
+        description: `Applied to "${applyingCampaign.title}". The business has been notified to review your credibility score.`,
+      })
       setApplyingCampaign(null)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to apply")
+      toast.error(err instanceof Error ? err.message : "Failed to apply", { id: toastId })
     } finally {
       setSubmitting(false)
     }

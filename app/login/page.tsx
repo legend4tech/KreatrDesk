@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import {
   ArrowRightIcon,
   Building2Icon,
@@ -22,14 +22,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useKreatrSession, type KreatrSessionUser } from "@/hooks/useKreatrData"
 import type { UserRole } from "@/types"
 
-export default function KreatrLoginPage() {
+function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { saveSession } = useKreatrSession()
 
-  const [role, setRole] = React.useState<UserRole>("business")
+  const initialRole = searchParams.get("role") === "creator" ? "creator" : "business"
+  const [role, setRole] = React.useState<UserRole>(initialRole)
   const [email, setEmail] = React.useState("")
   const [password, setPassword] = React.useState("")
   const [loading, setLoading] = React.useState(false)
+
+  // Sync role if query param updates
+  React.useEffect(() => {
+    const r = searchParams.get("role")
+    if (r === "creator" || r === "business") {
+      setRole(r)
+    }
+  }, [searchParams])
 
   const handleTabChange = (val: string) => {
     const nextRole = val === "creator" ? "creator" : "business"
@@ -39,13 +49,17 @@ export default function KreatrLoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email.trim() || !password) {
-      toast.error("Please enter your email and password.", { id: "auth-toast" })
+      toast.error("Please enter both your email and password.", {
+        id: "auth-toast",
+        description: "Email and password are required to sign in.",
+      })
       return
     }
 
     setLoading(true)
+    const toastId = toast.loading("Verifying credentials and signing in...", { id: "auth-toast" })
     try {
-      const res = await fetch("/api/kreatr/auth", {
+      let res = await fetch("/api/kreatr/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -55,16 +69,48 @@ export default function KreatrLoginPage() {
           password,
         }),
       })
-      const payload = (await res.json()) as {
+      let payload = (await res.json().catch(() => ({}))) as {
         user?: KreatrSessionUser
         message?: string
       }
+
+      // If backend reports a role mismatch (e.g. Creator signed in while Business tab is active)
+      if (res.status === 403 && payload.message?.toLowerCase().includes("switch the tab")) {
+        const detectedRole: UserRole = payload.message.toLowerCase().includes("creator")
+          ? "creator"
+          : "business"
+        setRole(detectedRole)
+        toast.info(
+          `Detected ${detectedRole === "creator" ? "Creator Studio" : "Business"} account. Switching role and signing in...`,
+          { id: toastId }
+        )
+
+        // Automatically re-attempt login with the matching role so user is never blocked!
+        res = await fetch("/api/kreatr/auth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            mode: "login",
+            role: detectedRole,
+            email: email.trim(),
+            password,
+          }),
+        })
+        payload = (await res.json().catch(() => ({}))) as {
+          user?: KreatrSessionUser
+          message?: string
+        }
+      }
+
       if (!res.ok || !payload.user) {
         throw new Error(payload.message || "Invalid email or password.")
       }
 
       saveSession(payload.user)
-      toast.success(`Signed in as ${payload.user.name}`, { id: "auth-toast" })
+      toast.success(`Welcome back, ${payload.user.name}!`, {
+        id: toastId,
+        description: `Successfully signed in to ${payload.user.role === "business" ? "Business Portal" : "Creator Studio"}.`,
+      })
       router.push(
         payload.user.role === "business"
           ? "/business/dashboard"
@@ -72,7 +118,8 @@ export default function KreatrLoginPage() {
       )
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Sign in failed", {
-        id: "auth-toast",
+        id: toastId,
+        description: "Please verify your email and password, then try again.",
       })
     } finally {
       setLoading(false)
@@ -187,7 +234,10 @@ export default function KreatrLoginPage() {
 
             <div className="text-center text-xs text-muted-foreground">
               Don&apos;t have an account yet?{" "}
-              <Link href="/register" className="font-semibold text-primary hover:underline">
+              <Link
+                href={`/register?role=${role}`}
+                className="font-semibold text-primary hover:underline"
+              >
                 Create a Business or Creator account
               </Link>
             </div>
@@ -195,5 +245,19 @@ export default function KreatrLoginPage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+export default function KreatrLoginPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
+          <Loader2Icon className="size-6 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <LoginForm />
+    </React.Suspense>
   )
 }

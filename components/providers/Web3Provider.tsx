@@ -64,7 +64,7 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <ThemedRainbowKit>
           {children}
-          <Toaster richColors position="top-right" />
+          <Toaster richColors position="top-right" closeButton duration={4000} />
         </ThemedRainbowKit>
       </QueryClientProvider>
     </WagmiProvider>

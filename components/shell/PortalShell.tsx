@@ -23,18 +23,19 @@ import {
   WalletIcon,
 } from "lucide-react"
 import { useTheme } from "next-themes"
+import { toast } from "sonner"
 
 import { BrandLogo } from "@/components/shared/BrandLogo"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 import {
   DEFAULT_BUSINESS_SESSION,
   DEFAULT_CREATOR_SESSION,
@@ -89,12 +90,23 @@ export function PortalShell({
         : DEFAULT_CREATOR_SESSION
 
   const handleSignOut = async () => {
-    await clearSession()
-    router.push("/login")
+    const toastId = toast.loading("Signing out...", { id: "portal-signout" })
+    try {
+      await clearSession()
+      toast.success("Signed out successfully. See you soon!", {
+        id: toastId,
+        description: "Your session has ended. Redirecting to login...",
+      })
+      router.push("/login")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to sign out. Please try again.", {
+        id: toastId,
+      })
+    }
   }
 
-  const renderSidebarContent = (onNavigate?: () => void) => (
-    <aside className="flex h-full w-64 flex-col justify-between border-r border-border bg-sidebar px-4 py-6 text-sidebar-foreground">
+  const renderSidebarContent = (onNavigate?: () => void, customClass?: string) => (
+    <aside className={cn("flex h-full w-64 flex-col justify-between border-r border-border bg-sidebar px-4 py-6 text-sidebar-foreground", customClass)}>
       <div className="space-y-6">
         <Link
           href="/"
@@ -177,67 +189,64 @@ export function PortalShell({
         {renderSidebarContent()}
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-border bg-background/85 px-4 backdrop-blur-xl md:px-8">
-          <div className="flex items-center gap-3">
-            <Dialog open={mobileOpen} onOpenChange={setMobileOpen}>
-              <DialogTrigger
+      <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden">
+        <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between gap-2 border-b border-border bg-background/85 px-3 backdrop-blur-xl sm:gap-3 sm:px-6 md:px-8">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger
                 render={
                   <Button
                     variant="outline"
                     size="icon-sm"
-                    className="lg:hidden"
+                    className="shrink-0 lg:hidden"
                     aria-label="Open navigation menu"
                   />
                 }
               >
                 <MenuIcon className="size-4" />
-              </DialogTrigger>
-              <DialogContent className="max-w-xs p-0">
-                <DialogHeader className="sr-only">
-                  <DialogTitle>Navigation</DialogTitle>
-                  <DialogDescription>Navigate KreatrDesk</DialogDescription>
-                </DialogHeader>
-                {renderSidebarContent(() => setMobileOpen(false))}
-              </DialogContent>
-            </Dialog>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-72 p-0 sm:w-80 bg-sidebar border-r border-border">
+                <SheetHeader className="sr-only">
+                  <SheetTitle>Navigation Menu</SheetTitle>
+                  <SheetDescription>Navigate KreatrDesk</SheetDescription>
+                </SheetHeader>
+                {renderSidebarContent(() => setMobileOpen(false), "w-full border-r-0")}
+              </SheetContent>
+            </Sheet>
 
-            <div className="flex items-center gap-2 rounded-full border border-border/70 bg-card/80 px-3.5 py-1 text-xs">
+            <div className="hidden items-center gap-2 rounded-full border border-border/70 bg-card/80 px-3 py-1 text-xs shrink-0 sm:flex sm:px-3.5">
               <TrendingUpIcon className="size-3.5 text-primary" />
               <span className="font-mono font-medium tabular-nums">
                 1 USD = {formatNgn(rates?.ngnPerUsd ?? 1375)}
               </span>
-              <Badge variant="secondary" className="hidden text-[10px] sm:inline-flex">
+              <Badge variant="secondary" className="hidden text-[10px] md:inline-flex">
                 Live Rate
               </Badge>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
             <Button
               variant="outline"
               size="sm"
               onClick={() => void handleSignOut()}
-              className="gap-1.5 rounded-full text-xs font-semibold"
+              className="gap-1.5 rounded-full px-2.5 text-xs font-semibold sm:px-3"
+              title="Sign Out / Switch Role"
             >
               {portalRole === "business" ? (
-                <>
-                  <VideoIcon className="size-3.5 text-primary" />
-                  <span>Sign Out / Switch Role</span>
-                </>
+                <VideoIcon className="size-3.5 text-primary shrink-0" />
               ) : (
-                <>
-                  <Building2Icon className="size-3.5 text-primary" />
-                  <span>Sign Out / Switch Role</span>
-                </>
+                <Building2Icon className="size-3.5 text-primary shrink-0" />
               )}
+              <span className="hidden md:inline">Sign Out / Switch Role</span>
+              <span className="hidden sm:inline md:hidden">Sign Out</span>
             </Button>
 
             {mounted && (
               <Button
                 variant="outline"
                 size="icon-sm"
-                className="rounded-full"
+                className="shrink-0 rounded-full"
                 onClick={() =>
                   setTheme(resolvedTheme === "dark" ? "light" : "dark")
                 }
@@ -265,6 +274,7 @@ export function PortalShell({
 
                 return (
                   <div
+                    className="shrink-0"
                     {...(!ready && {
                       "aria-hidden": true,
                       style: { opacity: 0, pointerEvents: "none", userSelect: "none" },
@@ -275,10 +285,11 @@ export function PortalShell({
                         size="sm"
                         variant="outline"
                         onClick={openConnectModal}
-                        className="gap-1.5 rounded-full text-xs"
+                        className="gap-1.5 rounded-full px-2.5 text-xs sm:px-3"
                       >
-                        <WalletIcon className="size-3.5" />
-                        Optional Crypto Wallet
+                        <WalletIcon className="size-3.5 shrink-0" />
+                        <span className="hidden sm:inline">Optional Crypto Wallet</span>
+                        <span className="sm:hidden">Wallet</span>
                       </Button>
                     ) : chain.unsupported ? (
                       <Button
@@ -294,10 +305,12 @@ export function PortalShell({
                         size="sm"
                         variant="outline"
                         onClick={openAccountModal}
-                        className="gap-2 rounded-full font-mono text-xs"
+                        className="gap-1.5 rounded-full px-2.5 font-mono text-xs sm:gap-2 sm:px-3"
                       >
-                        <span className="size-2 rounded-full bg-emerald-500" />
-                        {account.displayName}
+                        <span className="size-2 rounded-full bg-emerald-500 shrink-0" />
+                        <span className="max-w-[72px] truncate sm:max-w-none">
+                          {account.displayName}
+                        </span>
                       </Button>
                     )}
                   </div>

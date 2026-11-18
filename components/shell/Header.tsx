@@ -14,18 +14,19 @@ import {
   WalletIcon,
 } from "lucide-react"
 import { useTheme } from "next-themes"
+import { toast } from "sonner"
 
 import { Sidebar } from "@/components/shell/Sidebar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useActiveRole } from "@/hooks/useKreatrData"
 import { useRoqquRates } from "@/hooks/useRoqquRates"
@@ -45,8 +46,8 @@ export function Header() {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-border bg-background/85 px-4 backdrop-blur-xl md:px-6">
       <div className="flex items-center gap-2.5">
-        <Dialog open={mobileOpen} onOpenChange={setMobileOpen}>
-          <DialogTrigger
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <SheetTrigger
             render={
               <Button
                 variant="outline"
@@ -57,20 +58,20 @@ export function Header() {
             }
           >
             <MenuIcon className="size-4" />
-          </DialogTrigger>
-          <DialogContent className="max-w-xs p-0">
-            <DialogHeader className="sr-only">
-              <DialogTitle>Navigation Menu</DialogTitle>
-              <DialogDescription>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-72 p-0 sm:w-80 bg-sidebar border-r border-border">
+            <SheetHeader className="sr-only">
+              <SheetTitle>Navigation Menu</SheetTitle>
+              <SheetDescription>
                 Navigate across KreatrDesk modules
-              </DialogDescription>
-            </DialogHeader>
+              </SheetDescription>
+            </SheetHeader>
             <Sidebar
               className="w-full border-r-0"
               onNavigate={() => setMobileOpen(false)}
             />
-          </DialogContent>
-        </Dialog>
+          </SheetContent>
+        </Sheet>
 
         {isLoading ? (
           <Skeleton className="h-8 w-44 rounded-full" />
@@ -81,7 +82,15 @@ export function Header() {
             <Button
               variant="ghost"
               size="xs"
-              onClick={() => void refetch()}
+              onClick={async () => {
+                const toastId = toast.loading("Refreshing exchange rates...")
+                try {
+                  await refetch()
+                  toast.success("Roqqu exchange rates refreshed", { id: toastId })
+                } catch {
+                  toast.error("Failed to refresh live exchange rates", { id: toastId })
+                }
+              }}
               disabled={isFetching}
             >
               <RefreshCwIcon className="size-3" />
@@ -109,7 +118,11 @@ export function Header() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => setRole(role === "business" ? "creator" : "business")}
+          onClick={() => {
+            const nextRole = role === "business" ? "creator" : "business"
+            setRole(nextRole)
+            toast.info(`Switched perspective to ${nextRole === "business" ? "Business" : "Creator Studio"}`)
+          }}
           className="hidden gap-1.5 rounded-full text-xs sm:inline-flex"
         >
           {role === "business" ? (
@@ -198,10 +211,12 @@ export function Header() {
                       size="sm"
                       variant="outline"
                       onClick={openAccountModal}
-                      className="gap-2 rounded-full font-mono text-xs"
+                      className="gap-1.5 rounded-full px-2.5 font-mono text-xs sm:gap-2 sm:px-3"
                     >
-                      <span className="size-2 rounded-full bg-emerald-500" />
-                      {account.displayName}
+                      <span className="size-2 rounded-full bg-emerald-500 shrink-0" />
+                      <span className="max-w-[72px] truncate sm:max-w-none">
+                        {account.displayName}
+                      </span>
                     </Button>
                   )
                 })()}

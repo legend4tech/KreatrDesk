@@ -22,7 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useKreatrOverview } from "@/hooks/useKreatrData"
 import { formatNgn } from "@/lib/format"
 
-export default function BusinessCustomerSalesPage() {
+export default function CreatorReferralsPage() {
   const { data } = useKreatrOverview()
   const projects = data?.projects ?? []
 
@@ -41,7 +41,9 @@ export default function BusinessCustomerSalesPage() {
   const copySmartLink = (code: string) => {
     const url = `${window.location.origin}/r/${code}`
     void navigator.clipboard.writeText(url)
-    toast.success(`Copied Creator Smart Link: ${url}`)
+    toast.success("Promo Link Copied to Clipboard!", {
+      description: `${url} (Share in your video description or bios to track customer orders).`,
+    })
   }
 
   return (
@@ -52,13 +54,13 @@ export default function BusinessCustomerSalesPage() {
           variant="outline"
           className="mb-2 border-primary/35 bg-primary/10 text-xs text-primary"
         >
-          Customer Sales &amp; Smart Promo Links
+          Creator Referral Links &amp; Customer Orders
         </Badge>
         <h1 className="font-display text-3xl font-extrabold tracking-tight">
-          Did Your CreatorsActually Bring You Customers?
+          Track Your Real Customer Sales &amp; Referral Impact
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Instead of counting useless video views or likes, KreatrDesk gives every hired creator a <strong>Smart Promo Link</strong> that tracks how many real customers clicked, messaged your WhatsApp/Store, and bought from you.
+          Show brands you bring paying customers, not just empty views. Share your <strong>Smart Promo Links</strong> in video bios and track real order conversions.
         </p>
       </div>
 
